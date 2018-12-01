@@ -1,0 +1,93 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <meta name="description" content="flight wallet - Pay Bitcoin securely">
+  <script>
+    var serviceAPI = 'http://explorer.flightwallet.org:4000'
+
+    function subscribe(address, deviceToken) {
+      if (!address || !deviceToken) {
+        throw new Error(`Cant subscribe without address or device token`)
+      }
+
+      return fetch(serviceAPI + '/subscribe', {
+        method: 'POST',
+        body: JSON.stringify({
+          address,
+          deviceToken,
+        })
+      })
+      .then(res => res.text())
+    }
+
+    function parseURLParams(location) {
+      var query = location.search || "?"
+      var params = query.slice(1).split("&").map((str) => str.split("=")).reduce((obj, [key, value]) => ({ [key]: value, ...obj }), {})
+      console.log('params', params)
+      return params
+    }
+
+    function redirectTo(uri) {
+      console.log('redirect to', uri)
+      try {
+        window.location = uri
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
+    function printQR(data) {
+      document.querySelector('#link').href = data
+      document.querySelector('#qrcode').innerText = data
+    }
+
+    var params = parseURLParams(window.location)
+
+    if (!params.address) {
+      handleError()
+    }
+
+    if (params.chain == 'bitcoin' || !params.chain) {
+      subscribe(params.address, params.deviceToken)
+        .then(success => {
+          console.log('res', success)
+          redirectTo('flightwallet://subscribed')
+        })
+        .catch(err => {
+          alert(err.message)
+          console.error(err)
+        })
+    } else if (params.chain == 'ethereum') {
+      alert('We dont support ETH subscription service yet, sorry')
+    }
+  </script>
+</head>
+
+<body>
+  <div class="container" style="max-width: 700px; margin: 0 auto;">
+    <h1>Subscribe to PUSH updates</h1>
+
+    <a id="link" href="flightwallet://openapp">Open in app</a>
+
+    <p>
+      Please open this page with parameters:
+
+    <p>
+      <a href="https://flightwallet.org/subscribe?address=YOUR_ADDRESS&deviceToken=YOUR_DEVICE_TOKEN">
+        https://flightwallet.org/subscribe?address=YOUR_ADDRESS&deviceToken=YOUR_DEVICE_TOKEN
+      </a>
+
+    <ul>
+      <li>
+      YOUR_ADDRESS – Copy Bitcoin Testnet address from Wallets page
+      <li>
+      YOUR_DEVICE_TOKEN - Shake your phone on Wallets page and it'll present you the device token, and copy it into the clipboard
+    </ul>
+
+    <div id="qrcode"></div>
+
+  </div>
+</body>
+
+</html>

@@ -1,2 +1,2 @@
 # sync
-Receive unspent outputs by link. https://flightwallet.org
+Receive unspent outputs by push service. https://flightwallet.org/subscribe
